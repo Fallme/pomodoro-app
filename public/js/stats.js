@@ -3,20 +3,22 @@ class StatsDashboard {
     this.pieCanvas = document.getElementById('pie-chart');
     this.weeklyCanvas = document.getElementById('weekly-chart');
     this.heatmapCanvas = document.getElementById('heatmap-chart');
-    this.pieColors = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#5AC8FA', '#FF2D55', '#FFD60A'];
+    this.pieColors = ['#FF8C6B', '#FFB347', '#7BC89C', '#E88D8D', '#B5C7E8', '#FFD700', '#FF6B6B', '#98D8C8'];
   }
 
   async refresh() {
     try {
-      const [stats, streak, weekly, checkins, dailyTasks] = await Promise.all([
+      const [stats, streak, weekly, checkins, dailyTasks, taskStats] = await Promise.all([
         api.getPomodoroStats(),
         api.getStreak(),
         api.getWeeklyChart(),
         api.getCheckins(),
-        api.getDailyTaskStats()
+        api.getDailyTaskStats(),
+        api.getTaskStats()
       ]);
 
       this.updateHero(stats, streak.streak);
+      this.updateTaskStats(taskStats);
       this.drawPieChart(dailyTasks);
       this.renderDailyTaskList(dailyTasks);
       this.drawWeeklyChart(weekly);
@@ -31,6 +33,13 @@ class StatsDashboard {
     document.getElementById('stat-today-count').textContent = stats.today.count;
     document.getElementById('stat-streak').textContent = streak;
     document.getElementById('stat-total').textContent = stats.total.minutes;
+  }
+
+  updateTaskStats(ts) {
+    document.getElementById('stat-task-total').textContent = ts.total;
+    document.getElementById('stat-task-done').textContent = ts.completed;
+    document.getElementById('stat-task-rate').textContent = ts.completion_rate + '%';
+    document.getElementById('stat-task-progress').textContent = ts.in_progress;
   }
 
   // ─── Pie Chart (Donut) ───
@@ -63,7 +72,7 @@ class StatsDashboard {
       ctx.fillStyle = 'rgba(0,0,0,0.05)';
       ctx.fill();
       // Center text
-      ctx.fillStyle = '#8E8E93';
+      ctx.fillStyle = '#8B7355';
       ctx.font = '13px -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('暂无数据', cx, cy + 4);
@@ -101,7 +110,7 @@ class StatsDashboard {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(total, cx, cy - 6);
-    ctx.fillStyle = '#8E8E93';
+    ctx.fillStyle = '#8B7355';
     ctx.font = '11px -apple-system, sans-serif';
     ctx.fillText('分钟', cx, cy + 14);
   }
@@ -159,7 +168,7 @@ class StatsDashboard {
     const gap = cW / 7;
 
     // Grid
-    ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+    ctx.strokeStyle = 'rgba(139,115,85,0.1)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
       const y = pad.top + cH - (cH * i / 4);
@@ -167,7 +176,7 @@ class StatsDashboard {
       ctx.moveTo(pad.left, y);
       ctx.lineTo(W - pad.right, y);
       ctx.stroke();
-      ctx.fillStyle = '#8E8E93';
+      ctx.fillStyle = '#8B7355';
       ctx.font = '10px -apple-system, sans-serif';
       ctx.textAlign = 'right';
       ctx.fillText(Math.round(maxVal * i / 4), pad.left - 6, y + 3);
@@ -180,8 +189,8 @@ class StatsDashboard {
       const y = pad.top + cH - barH;
 
       const grad = ctx.createLinearGradient(x, y, x, pad.top + cH);
-      grad.addColorStop(0, '#007AFF');
-      grad.addColorStop(1, '#5AC8FA');
+      grad.addColorStop(0, '#FF8C6B');
+      grad.addColorStop(1, '#FFB5A0');
       ctx.fillStyle = grad;
 
       if (barH > 0) {
@@ -197,7 +206,7 @@ class StatsDashboard {
         ctx.fill();
       }
 
-      ctx.fillStyle = '#8E8E93';
+      ctx.fillStyle = '#8B7355';
       ctx.font = '11px -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(days[i], x + barW / 2, H - 8);
@@ -225,7 +234,7 @@ class StatsDashboard {
 
     // Day labels
     const dayLabels = ['一', '', '三', '', '五', '', '日'];
-    ctx.fillStyle = '#8E8E93';
+    ctx.fillStyle = '#8B7355';
     ctx.font = '10px -apple-system, sans-serif';
     ctx.textAlign = 'right';
     dayLabels.forEach((label, i) => {
@@ -260,7 +269,7 @@ class StatsDashboard {
         ctx.quadraticCurveTo(x, y, x + r, y);
         ctx.closePath();
 
-        ctx.fillStyle = dateSet.has(dateStr) ? '#007AFF' : 'rgba(0,0,0,0.05)';
+        ctx.fillStyle = dateSet.has(dateStr) ? '#FF8C6B' : 'rgba(0,0,0,0.05)';
         ctx.fill();
       }
     }

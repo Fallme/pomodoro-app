@@ -162,6 +162,20 @@ function getDailyTaskStats(date) {
   return { date: d, tasks, total_minutes: total };
 }
 
+function getTaskStats() {
+  const row = db.prepare(`
+    SELECT
+      COUNT(*) AS total,
+      SUM(CASE WHEN state = 'completed' THEN 1 ELSE 0 END) AS completed,
+      SUM(CASE WHEN state = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
+      SUM(CASE WHEN state = 'waiting' THEN 1 ELSE 0 END) AS waiting,
+      SUM(CASE WHEN state = 'abandoned' THEN 1 ELSE 0 END) AS abandoned
+    FROM tasks
+  `).get();
+  const rate = row.total > 0 ? Math.round((row.completed / row.total) * 100) : 0;
+  return { total: row.total, completed: row.completed, in_progress: row.in_progress, waiting: row.waiting, abandoned: row.abandoned, completion_rate: rate };
+}
+
 // ─── Checkins ───
 
 function recordCheckin(date) {
@@ -195,6 +209,6 @@ function getStreak() {
 module.exports = {
   db,
   getAllTasks, createTask, updateTask, deleteTask,
-  logPomodoroSession, getPomodoroStats, getWeeklyChartData, getMonthlyTrendData, getDailyTaskStats,
+  logPomodoroSession, getPomodoroStats, getWeeklyChartData, getMonthlyTrendData, getDailyTaskStats, getTaskStats,
   recordCheckin, getCheckins, getStreak
 };

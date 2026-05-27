@@ -3,15 +3,15 @@
    ═══════════════════════════════════════════ */
 
 :root {
-  --accent: #007AFF;
-  --accent-soft: rgba(0, 122, 255, 0.12);
-  --accent-light: #5AC8FA;
-  --text-primary: #1C1C1E;
-  --text-secondary: #8E8E93;
-  --text-tertiary: #AEAEB2;
-  --success: #34C759;
-  --warning: #FF9500;
-  --danger: #FF3B30;
+  --accent: #FF8C6B;
+  --accent-soft: rgba(255, 140, 107, 0.15);
+  --accent-light: #FFB5A0;
+  --text-primary: #2C1810;
+  --text-secondary: #8B7355;
+  --text-tertiary: #B8A88A;
+  --success: #7BC89C;
+  --warning: #FFB347;
+  --danger: #E88D8D;
   --glass-bg: rgba(255, 255, 255, 0.55);
   --glass-bg-solid: rgba(255, 255, 255, 0.72);
   --glass-bg-hover: rgba(255, 255, 255, 0.7);
@@ -44,7 +44,7 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   min-height: 100dvh;
-  background: linear-gradient(135deg, #c2e9fb 0%, #a1c4fd 30%, #d4c5f9 70%, #fbc2eb 100%);
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 30%, #ffecd2 60%, #fbc2eb 100%);
   background-attachment: fixed;
   overflow-x: hidden;
   line-height: 1.5;
@@ -1020,7 +1020,7 @@ button, input, select { font-family: inherit; }
     --text-tertiary: #636366;
   }
   body {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #0f3460 70%, #1a1a2e 100%);
+    background: linear-gradient(135deg, #2C1810 0%, #3D2317 30%, #4A2C1A 70%, #2C1810 100%);
   }
   .glass, .glass-solid, .timer-task-bar, .settings-toggle, .settings-inner,
   .task-card, .stat-card, .chart-section, .todo-input, .todo-priority, .filter-chip {
