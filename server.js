@@ -95,7 +95,12 @@ app.use((err, req, res, next) => {
 // ─── Startup: pull latest data from git ───
 gitSync.pull();
 
-app.listen(PORT, () => {
-  const gitStatus = gitSync.isGitConfigured() ? ' | Git sync enabled' : ' | Git sync not configured';
-  console.log(`Server running at http://localhost:${PORT}${gitStatus}`);
-});
+// Only listen when running directly (not on Vercel)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    const gitStatus = gitSync.isGitConfigured() ? ' | Git sync enabled' : ' | Git sync not configured';
+    console.log(`Server running at http://localhost:${PORT}${gitStatus}`);
+  });
+}
+
+module.exports = app;
