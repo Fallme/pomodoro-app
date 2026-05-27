@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>番茄钟 · 专注与成长</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍅</text></svg>">
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <h1>🍅 番茄钟</h1>
+      <nav class="tab-nav">
+        <button data-tab="timer" class="tab-btn active">计时</button>
+        <button data-tab="todo" class="tab-btn">清单</button>
+        <button data-tab="stats" class="tab-btn">统计</button>
+      </nav>
+    </header>
+
+    <div class="settings-row">
+      <button id="settings-btn" title="设置">⚙</button>
+    </div>
+
+    <!-- ═══ Timer Tab ═══ -->
+    <section id="tab-timer" class="tab-content active">
+      <div class="card">
+        <div class="timer-phase">
+          <span id="timer-phase" class="phase-badge focus">专注时间</span>
+        </div>
+        <div class="timer-ring-wrap">
+          <div class="timer-ring">
+            <svg viewBox="0 0 260 260">
+              <circle class="ring-bg" cx="130" cy="130" r="115"/>
+              <circle id="ring-progress" class="ring-progress" cx="130" cy="130" r="115"
+                stroke-dasharray="722.57" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-display">
+              <div id="timer-time" class="timer-time">25:00</div>
+              <div id="timer-cycle" class="timer-cycle">1 / 4</div>
+            </div>
+          </div>
+        </div>
+        <div class="timer-controls">
+          <button id="btn-start" class="btn btn-primary">开始</button>
+          <button id="btn-pause" class="btn btn-primary" style="display:none">暂停</button>
+          <button id="btn-reset" class="btn btn-icon" title="重置">↺</button>
+          <button id="btn-skip" class="btn btn-icon" title="跳过">⏭</button>
+        </div>
+        <select id="timer-task-select" class="timer-task-select">
+          <option value="">不关联任务</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- ═══ TODO Tab ═══ -->
+    <section id="tab-todo" class="tab-content">
+      <div class="add-task-bar">
+        <input id="task-input" type="text" placeholder="添加新任务..." maxlength="100">
+        <select id="task-priority">
+          <option value="1">P1</option>
+          <option value="2">P2</option>
+          <option value="3" selected>P3</option>
+          <option value="4">P4</option>
+          <option value="5">P5</option>
+        </select>
+        <button id="task-add-btn" class="btn btn-primary btn-sm">添加</button>
+      </div>
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="waiting">等待</button>
+        <button class="filter-btn" data-filter="in_progress">进行中</button>
+        <button class="filter-btn" data-filter="completed">完成</button>
+        <button class="filter-btn" data-filter="abandoned">废弃</button>
+      </div>
+      <div class="sort-bar">
+        <select id="sort-select">
+          <option value="date">按时间</option>
+          <option value="priority">按优先级</option>
+        </select>
+      </div>
+      <div id="task-list" class="task-list"></div>
+    </section>
+
+    <!-- ═══ Stats Tab ═══ -->
+    <section id="tab-stats" class="tab-content">
+      <div class="stats-cards">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-today">0</div>
+          <div class="stat-label">今日专注 (分钟)</div>
+          <div class="stat-label" id="stat-today-count">0个</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-week">0</div>
+          <div class="stat-label">本周专注 (分钟)</div>
+          <div class="stat-label" id="stat-week-count">0个</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-label">累计专注 (分钟)</div>
+          <div class="stat-label" id="stat-total-count">0个</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-avg">0</div>
+          <div class="stat-label">日均专注 (分钟)</div>
+        </div>
+        <div class="streak-card">
+          <div>
+            <div class="streak-number" id="streak-num">0</div>
+          </div>
+          <div class="streak-label">连续打卡天数 🔥</div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <h3>本周专注</h3>
+        <canvas id="weekly-chart" class="chart-canvas"></canvas>
+      </div>
+
+      <div class="chart-section">
+        <h3>月度趋势</h3>
+        <canvas id="monthly-chart" class="chart-canvas"></canvas>
+      </div>
+
+      <div class="chart-section">
+        <h3>打卡日历</h3>
+        <div class="heatmap-wrap">
+          <canvas id="heatmap-chart" class="chart-canvas heatmap-canvas"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Settings Modal ═══ -->
+    <div id="settings-overlay" class="modal-overlay">
+      <div class="modal">
+        <h2>计时设置</h2>
+        <div class="form-group">
+          <label>专注时长 (分钟)</label>
+          <input id="s-focus" type="number" min="1" max="120" value="25">
+        </div>
+        <div class="form-group">
+          <label>短休息时长 (分钟)</label>
+          <input id="s-short" type="number" min="1" max="30" value="5">
+        </div>
+        <div class="form-group">
+          <label>长休息时长 (分钟)</label>
+          <input id="s-long" type="number" min="1" max="60" value="15">
+        </div>
+        <div class="form-group">
+          <label>循环次数 (专注后长休息)</label>
+          <input id="s-cycles" type="number" min="1" max="10" value="4">
+        </div>
+        <div class="modal-actions">
+          <button id="settings-cancel" class="btn btn-secondary">取消</button>
+          <button id="settings-save" class="btn btn-primary">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/todo.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

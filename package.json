@@ -1,0 +1,14 @@
+{
+  "name": "pomodoro-app",
+  "version": "1.0.0",
+  "description": "番茄钟 + 打卡统计 + TODO清单",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "better-sqlite3": "^11.6.0"
+  }
+}
