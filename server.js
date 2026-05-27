@@ -64,6 +64,10 @@ app.get('/api/pomodoro/monthly', (req, res) => {
   res.json(db.getMonthlyTrendData());
 });
 
+app.get('/api/pomodoro/daily-tasks', (req, res) => {
+  res.json(db.getDailyTaskStats(req.query.date));
+});
+
 // ─── Checkins API ───
 
 app.get('/api/checkins', (req, res) => {

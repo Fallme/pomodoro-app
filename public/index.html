@@ -2,161 +2,212 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>番茄钟 · 专注与成长</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>番茄钟</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍅</text></svg>">
 </head>
 <body>
   <div id="app">
-    <header class="app-header">
-      <h1>🍅 番茄钟</h1>
-      <nav class="tab-nav">
-        <button data-tab="timer" class="tab-btn active">计时</button>
-        <button data-tab="todo" class="tab-btn">清单</button>
-        <button data-tab="stats" class="tab-btn">统计</button>
-      </nav>
+    <header class="header">
+      <h1>番茄钟</h1>
     </header>
-
-    <div class="settings-row">
-      <button id="settings-btn" title="设置">⚙</button>
-    </div>
 
     <!-- ═══ Timer Tab ═══ -->
     <section id="tab-timer" class="tab-content active">
-      <div class="card">
-        <div class="timer-phase">
-          <span id="timer-phase" class="phase-badge focus">专注时间</span>
-        </div>
+      <div class="timer-wrap">
         <div class="timer-ring-wrap">
-          <div class="timer-ring">
-            <svg viewBox="0 0 260 260">
-              <circle class="ring-bg" cx="130" cy="130" r="115"/>
-              <circle id="ring-progress" class="ring-progress" cx="130" cy="130" r="115"
-                stroke-dasharray="722.57" stroke-dashoffset="0"/>
-            </svg>
-            <div class="timer-display">
-              <div id="timer-time" class="timer-time">25:00</div>
-              <div id="timer-cycle" class="timer-cycle">1 / 4</div>
+          <svg viewBox="0 0 260 260" width="100%" height="100%">
+            <defs>
+              <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#007AFF"/>
+                <stop offset="100%" style="stop-color:#5AC8FA"/>
+              </linearGradient>
+            </defs>
+            <circle class="timer-ring-bg" cx="130" cy="130" r="115"/>
+            <circle id="ring-progress" class="timer-ring-progress" cx="130" cy="130" r="115"
+              stroke-dasharray="722.57" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-center">
+            <div id="timer-phase" class="timer-phase">专注</div>
+            <div id="timer-time" class="timer-time">25:00</div>
+            <div id="timer-cycle" class="timer-cycle">1 / 4</div>
+          </div>
+        </div>
+
+        <!-- Task selector -->
+        <div id="timer-task-bar" class="timer-task-bar">
+          <div class="task-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </div>
+          <span id="timer-task-label" class="task-label">选择任务</span>
+          <svg class="task-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+
+        <!-- Controls -->
+        <div class="timer-controls">
+          <button id="btn-reset" class="ctrl-btn secondary" title="重置">
+            <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          </button>
+          <button id="btn-start" class="ctrl-btn primary" title="开始">
+            <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+          </button>
+          <button id="btn-skip" class="ctrl-btn secondary" title="跳过">
+            <svg viewBox="0 0 24 24"><polygon points="5,4 15,12 5,20"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </button>
+        </div>
+
+        <!-- Settings toggle -->
+        <div id="settings-toggle" class="settings-toggle">
+          <div class="st-left">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            计时设置
+          </div>
+          <svg class="st-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div id="settings-panel" class="settings-panel">
+          <div class="settings-inner">
+            <div class="setting-row">
+              <span class="setting-label">专注时长</span>
+              <div class="setting-stepper">
+                <button data-setting="focus" data-dir="-1">−</button>
+                <span class="val" id="s-focus">25</span>
+                <span class="unit">分钟</span>
+                <button data-setting="focus" data-dir="1">+</button>
+              </div>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">短休息</span>
+              <div class="setting-stepper">
+                <button data-setting="short" data-dir="-1">−</button>
+                <span class="val" id="s-short">5</span>
+                <span class="unit">分钟</span>
+                <button data-setting="short" data-dir="1">+</button>
+              </div>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">长休息</span>
+              <div class="setting-stepper">
+                <button data-setting="long" data-dir="-1">−</button>
+                <span class="val" id="s-long">15</span>
+                <span class="unit">分钟</span>
+                <button data-setting="long" data-dir="1">+</button>
+              </div>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">循环次数</span>
+              <div class="setting-stepper">
+                <button data-setting="cycles" data-dir="-1">−</button>
+                <span class="val" id="s-cycles">4</span>
+                <span class="unit">次</span>
+                <button data-setting="cycles" data-dir="1">+</button>
+              </div>
             </div>
           </div>
         </div>
-        <div class="timer-controls">
-          <button id="btn-start" class="btn btn-primary">开始</button>
-          <button id="btn-pause" class="btn btn-primary" style="display:none">暂停</button>
-          <button id="btn-reset" class="btn btn-icon" title="重置">↺</button>
-          <button id="btn-skip" class="btn btn-icon" title="跳过">⏭</button>
-        </div>
-        <select id="timer-task-select" class="timer-task-select">
-          <option value="">不关联任务</option>
-        </select>
       </div>
     </section>
 
     <!-- ═══ TODO Tab ═══ -->
     <section id="tab-todo" class="tab-content">
-      <div class="add-task-bar">
-        <input id="task-input" type="text" placeholder="添加新任务..." maxlength="100">
-        <select id="task-priority">
-          <option value="1">P1</option>
-          <option value="2">P2</option>
-          <option value="3" selected>P3</option>
-          <option value="4">P4</option>
-          <option value="5">P5</option>
-        </select>
-        <button id="task-add-btn" class="btn btn-primary btn-sm">添加</button>
+      <div class="todo-section">
+        <div class="todo-input-wrap glass">
+          <input id="task-input" class="todo-input" type="text" placeholder="添加新任务..." maxlength="100">
+          <select id="task-priority" class="todo-priority">
+            <option value="1">P1</option>
+            <option value="2">P2</option>
+            <option value="3" selected>P3</option>
+            <option value="4">P4</option>
+            <option value="5">P5</option>
+          </select>
+          <button id="task-add-btn" class="todo-add-btn">+</button>
+        </div>
+        <div class="todo-filters">
+          <button class="filter-chip active" data-filter="all">全部</button>
+          <button class="filter-chip" data-filter="waiting">等待</button>
+          <button class="filter-chip" data-filter="in_progress">进行中</button>
+          <button class="filter-chip" data-filter="completed">完成</button>
+          <button class="filter-chip" data-filter="abandoned">废弃</button>
+        </div>
+        <div id="task-list" class="task-list"></div>
       </div>
-      <div class="filter-bar">
-        <button class="filter-btn active" data-filter="all">全部</button>
-        <button class="filter-btn" data-filter="waiting">等待</button>
-        <button class="filter-btn" data-filter="in_progress">进行中</button>
-        <button class="filter-btn" data-filter="completed">完成</button>
-        <button class="filter-btn" data-filter="abandoned">废弃</button>
-      </div>
-      <div class="sort-bar">
-        <select id="sort-select">
-          <option value="date">按时间</option>
-          <option value="priority">按优先级</option>
-        </select>
-      </div>
-      <div id="task-list" class="task-list"></div>
     </section>
 
     <!-- ═══ Stats Tab ═══ -->
     <section id="tab-stats" class="tab-content">
-      <div class="stats-cards">
-        <div class="stat-card">
-          <div class="stat-value" id="stat-today">0</div>
-          <div class="stat-label">今日专注 (分钟)</div>
-          <div class="stat-label" id="stat-today-count">0个</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-week">0</div>
-          <div class="stat-label">本周专注 (分钟)</div>
-          <div class="stat-label" id="stat-week-count">0个</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-total">0</div>
-          <div class="stat-label">累计专注 (分钟)</div>
-          <div class="stat-label" id="stat-total-count">0个</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-avg">0</div>
-          <div class="stat-label">日均专注 (分钟)</div>
-        </div>
-        <div class="streak-card">
-          <div>
-            <div class="streak-number" id="streak-num">0</div>
+      <div class="stats-section">
+        <!-- Hero -->
+        <div class="stats-hero glass">
+          <div class="stats-hero-value" id="stat-today">0</div>
+          <div class="stats-hero-label">今日专注分钟</div>
+          <div class="stats-hero-sub">
+            <div class="sub-item">
+              <div class="sub-val" id="stat-today-count">0</div>
+              <div class="sub-label">番茄</div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-val" id="stat-streak">0</div>
+              <div class="sub-label">连续天数</div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-val" id="stat-total">0</div>
+              <div class="sub-label">累计分钟</div>
+            </div>
           </div>
-          <div class="streak-label">连续打卡天数 🔥</div>
         </div>
-      </div>
 
-      <div class="chart-section">
-        <h3>本周专注</h3>
-        <canvas id="weekly-chart" class="chart-canvas"></canvas>
-      </div>
+        <!-- Pie chart: daily task breakdown -->
+        <div class="chart-section glass">
+          <div class="chart-title">今日任务分布</div>
+          <div id="pie-area">
+            <canvas id="pie-chart" class="pie-canvas"></canvas>
+            <div id="pie-legend" class="pie-legend"></div>
+          </div>
+          <div id="daily-task-list" class="daily-task-list"></div>
+        </div>
 
-      <div class="chart-section">
-        <h3>月度趋势</h3>
-        <canvas id="monthly-chart" class="chart-canvas"></canvas>
-      </div>
+        <!-- Weekly bar chart -->
+        <div class="chart-section glass">
+          <div class="chart-title">本周趋势</div>
+          <canvas id="weekly-chart" class="chart-canvas"></canvas>
+        </div>
 
-      <div class="chart-section">
-        <h3>打卡日历</h3>
-        <div class="heatmap-wrap">
-          <canvas id="heatmap-chart" class="chart-canvas heatmap-canvas"></canvas>
+        <!-- Heatmap -->
+        <div class="chart-section glass">
+          <div class="chart-title">打卡日历</div>
+          <div class="heatmap-scroll">
+            <canvas id="heatmap-chart" class="chart-canvas" style="height:140px;min-width:400px"></canvas>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ═══ Settings Modal ═══ -->
-    <div id="settings-overlay" class="modal-overlay">
-      <div class="modal">
-        <h2>计时设置</h2>
-        <div class="form-group">
-          <label>专注时长 (分钟)</label>
-          <input id="s-focus" type="number" min="1" max="120" value="25">
-        </div>
-        <div class="form-group">
-          <label>短休息时长 (分钟)</label>
-          <input id="s-short" type="number" min="1" max="30" value="5">
-        </div>
-        <div class="form-group">
-          <label>长休息时长 (分钟)</label>
-          <input id="s-long" type="number" min="1" max="60" value="15">
-        </div>
-        <div class="form-group">
-          <label>循环次数 (专注后长休息)</label>
-          <input id="s-cycles" type="number" min="1" max="10" value="4">
-        </div>
-        <div class="modal-actions">
-          <button id="settings-cancel" class="btn btn-secondary">取消</button>
-          <button id="settings-save" class="btn btn-primary">保存</button>
-        </div>
-      </div>
+    <!-- ═══ Task Picker Bottom Sheet ═══ -->
+    <div id="sheet-overlay" class="sheet-overlay"></div>
+    <div id="task-sheet" class="task-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">选择任务</div>
+      <div id="sheet-options"></div>
     </div>
   </div>
+
+  <!-- ═══ Bottom Tab Bar ═══ -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="timer">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>专注</span>
+    </button>
+    <button class="tab-btn" data-tab="todo">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <span>清单</span>
+    </button>
+    <button class="tab-btn" data-tab="stats">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>统计</span>
+    </button>
+  </nav>
 
   <script src="js/api.js"></script>
   <script src="js/timer.js"></script>

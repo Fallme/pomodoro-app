@@ -143,6 +143,25 @@ function getMonthlyTrendData() {
   `).all();
 }
 
+function getDailyTaskStats(date) {
+  const d = date || new Date().toISOString().slice(0, 10);
+  const tasks = db.prepare(`
+    SELECT
+      ps.task_id,
+      COALESCE(t.title, '未分配') AS title,
+      SUM(ps.duration_minutes) AS total_minutes,
+      COUNT(*) AS session_count
+    FROM pomodoro_sessions ps
+    LEFT JOIN tasks t ON ps.task_id = t.id
+    WHERE ps.type = 'focus' AND ps.completed = 1
+      AND date(ps.started_at, 'localtime') = ?
+    GROUP BY ps.task_id
+    ORDER BY total_minutes DESC
+  `).all(d);
+  const total = tasks.reduce((s, t) => s + t.total_minutes, 0);
+  return { date: d, tasks, total_minutes: total };
+}
+
 // ─── Checkins ───
 
 function recordCheckin(date) {
@@ -176,6 +195,6 @@ function getStreak() {
 module.exports = {
   db,
   getAllTasks, createTask, updateTask, deleteTask,
-  logPomodoroSession, getPomodoroStats, getWeeklyChartData, getMonthlyTrendData,
+  logPomodoroSession, getPomodoroStats, getWeeklyChartData, getMonthlyTrendData, getDailyTaskStats,
   recordCheckin, getCheckins, getStreak
 };

@@ -1,29 +1,42 @@
 class PomodoroTimer {
   constructor() {
     this.settings = this.loadSettings();
-    this.state = { phase: 'idle', sessionType: 'focus', remaining: 0, totalDuration: 0, endTime: 0, completedPomodoros: 0, linkedTaskId: null, rafId: null };
+    this.state = {
+      phase: 'idle',
+      sessionType: 'focus',
+      remaining: 0,
+      totalDuration: 0,
+      endTime: 0,
+      completedPomodoros: 0,
+      linkedTaskId: null,
+      linkedTaskTitle: null,
+      rafId: null
+    };
+    this.tasks = [];
     this.audioCtx = null;
 
+    // DOM refs
     this.timeEl = document.getElementById('timer-time');
     this.phaseEl = document.getElementById('timer-phase');
     this.cycleEl = document.getElementById('timer-cycle');
     this.circleEl = document.getElementById('ring-progress');
-    this.taskSelect = document.getElementById('timer-task-select');
-
     this.btnStart = document.getElementById('btn-start');
-    this.btnPause = document.getElementById('btn-pause');
     this.btnReset = document.getElementById('btn-reset');
     this.btnSkip = document.getElementById('btn-skip');
+    this.taskBar = document.getElementById('timer-task-bar');
+    this.taskLabel = document.getElementById('timer-task-label');
+    this.sheetOverlay = document.getElementById('sheet-overlay');
+    this.taskSheet = document.getElementById('task-sheet');
+    this.sheetOptions = document.getElementById('sheet-options');
 
-    this.btnStart.addEventListener('click', () => this.start());
-    this.btnPause.addEventListener('click', () => this.pause());
+    // Events
+    this.btnStart.addEventListener('click', () => this.toggleTimer());
     this.btnReset.addEventListener('click', () => this.reset());
     this.btnSkip.addEventListener('click', () => this.skip());
+    this.taskBar.addEventListener('click', () => this.openTaskSheet());
+    this.sheetOverlay.addEventListener('click', () => this.closeTaskSheet());
 
-    this.taskSelect.addEventListener('change', () => {
-      this.state.linkedTaskId = this.taskSelect.value ? Number(this.taskSelect.value) : null;
-    });
-
+    // Visibility change - refresh display
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && this.state.phase === 'running') {
         this.updateDisplay(Math.max(0, this.state.endTime - Date.now()));
@@ -32,14 +45,19 @@ class PomodoroTimer {
 
     this.setSession('focus');
     this.updateButtons();
+    this.initSettings();
   }
 
   loadSettings() {
-    const defaults = { focusDuration: 25, shortBreakDuration: 5, longBreakDuration: 15, pomodorosPerCycle: 4 };
+    const d = { focusDuration: 25, shortBreakDuration: 5, longBreakDuration: 15, pomodorosPerCycle: 4 };
     try {
-      const saved = JSON.parse(localStorage.getItem('pomodoro-settings'));
-      return saved ? { ...defaults, ...saved } : defaults;
-    } catch { return defaults; }
+      const s = JSON.parse(localStorage.getItem('pomodoro-settings'));
+      return s ? { ...d, ...s } : d;
+    } catch { return d; }
+  }
+
+  saveSettings() {
+    localStorage.setItem('pomodoro-settings', JSON.stringify(this.settings));
   }
 
   getDurationMs(type) {
@@ -47,15 +65,57 @@ class PomodoroTimer {
     return (map[type] || 25) * 60 * 1000;
   }
 
-  setSession(type) {
-    this.state.sessionType = type;
-    this.state.totalDuration = this.getDurationMs(type);
-    this.state.remaining = this.state.totalDuration;
-    this.state.phase = 'idle';
-    this.updateDisplay(this.state.remaining);
-    this.updatePhaseDisplay();
-    this.updateProgress(1);
-    this.updateButtons();
+  // ─── Settings UI ───
+
+  initSettings() {
+    const toggle = document.getElementById('settings-toggle');
+    const panel = document.getElementById('settings-panel');
+
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('open');
+      panel.classList.toggle('open');
+    });
+
+    // Stepper buttons
+    document.querySelectorAll('.setting-stepper button').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const key = btn.dataset.setting;
+        const dir = Number(btn.dataset.dir);
+        const mins = { focus: [1, 120], short: [1, 30], long: [1, 60], cycles: [1, 10] };
+        const [min, max] = mins[key];
+        const valEl = btn.parentElement.querySelector('.val');
+        let val = Number(valEl.textContent) + dir;
+        val = Math.max(min, Math.min(max, val));
+        valEl.textContent = val;
+
+        // Update settings
+        const map = { focus: 'focusDuration', short: 'shortBreakDuration', long: 'longBreakDuration', cycles: 'pomodorosPerCycle' };
+        this.settings[map[key]] = val;
+        this.saveSettings();
+
+        // Update display if idle
+        if (this.state.phase === 'idle') {
+          this.setSession(this.state.sessionType);
+        }
+      });
+    });
+
+    // Sync display values
+    document.getElementById('s-focus').textContent = this.settings.focusDuration;
+    document.getElementById('s-short').textContent = this.settings.shortBreakDuration;
+    document.getElementById('s-long').textContent = this.settings.longBreakDuration;
+    document.getElementById('s-cycles').textContent = this.settings.pomodorosPerCycle;
+  }
+
+  // ─── Timer Control ───
+
+  toggleTimer() {
+    if (this.state.phase === 'running') {
+      this.pause();
+    } else {
+      this.start();
+    }
   }
 
   start() {
@@ -94,13 +154,23 @@ class PomodoroTimer {
     this.advancePhase();
   }
 
+  setSession(type) {
+    this.state.sessionType = type;
+    this.state.totalDuration = this.getDurationMs(type);
+    this.state.remaining = this.state.totalDuration;
+    this.state.phase = 'idle';
+    this.updateDisplay(this.state.remaining);
+    this.updatePhaseDisplay();
+    this.updateProgress(1);
+    this.updateButtons();
+  }
+
   tick() {
     if (this.state.phase !== 'running') return;
     const now = Date.now();
     this.state.remaining = Math.max(0, this.state.endTime - now);
     this.updateDisplay(this.state.remaining);
     this.updateProgress(this.state.remaining / this.state.totalDuration);
-
     if (this.state.remaining <= 0) {
       this.onComplete();
       return;
@@ -111,8 +181,6 @@ class PomodoroTimer {
   async onComplete() {
     this.state.phase = 'idle';
     if (this.state.rafId) cancelAnimationFrame(this.state.rafId);
-
-    // Log session
     try {
       await api.logPomodoro({
         task_id: this.state.linkedTaskId,
@@ -121,7 +189,6 @@ class PomodoroTimer {
         completed: true
       });
     } catch (e) { console.error('Failed to log session:', e); }
-
     this.playSound();
     this.sendNotification();
     this.advancePhase();
@@ -141,6 +208,8 @@ class PomodoroTimer {
     }
   }
 
+  // ─── Display ───
+
   updateDisplay(remaining) {
     const m = Math.floor(remaining / 60000);
     const s = Math.floor((remaining % 60000) / 1000);
@@ -148,42 +217,83 @@ class PomodoroTimer {
   }
 
   updateProgress(ratio) {
-    const r = 115;
-    const c = 2 * Math.PI * r;
+    const c = 2 * Math.PI * 115;
     this.circleEl.style.strokeDashoffset = c * (1 - ratio);
   }
 
   updatePhaseDisplay() {
-    const labels = { focus: '专注时间', short_break: '短休息', long_break: '长休息' };
+    const labels = { focus: '专注', short_break: '短休息', long_break: '长休息' };
     this.phaseEl.textContent = labels[this.state.sessionType];
-    this.phaseEl.className = 'phase-badge ' + this.state.sessionType;
-
-    this.circleEl.className = 'ring-progress';
-    if (this.state.sessionType === 'short_break') this.circleEl.classList.add('break');
-    if (this.state.sessionType === 'long_break') this.circleEl.classList.add('long-break');
+    this.phaseEl.className = 'timer-phase';
+    if (this.state.sessionType === 'short_break') this.phaseEl.classList.add('break');
+    if (this.state.sessionType === 'long_break') this.phaseEl.classList.add('long-break');
 
     const n = this.state.completedPomodoros + 1;
-    const total = this.settings.pomodorosPerCycle;
-    this.cycleEl.textContent = `${n} / ${total}`;
+    this.cycleEl.textContent = `${n} / ${this.settings.pomodorosPerCycle}`;
   }
 
   updateButtons() {
     const running = this.state.phase === 'running';
-    const paused = this.state.phase === 'paused';
-    this.btnStart.style.display = running ? 'none' : '';
-    this.btnPause.style.display = running ? '' : 'none';
-    this.btnStart.textContent = paused ? '继续' : '开始';
+    this.btnStart.classList.toggle('running', running);
+    // Swap icon: running = pause, else = play
+    this.btnStart.innerHTML = running
+      ? '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+      : '<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>';
   }
+
+  // ─── Task Sheet ───
 
   async refreshTaskList() {
     try {
       const data = await api.getTasks('all', 'date');
-      const tasks = data.tasks.filter(t => t.state === 'waiting' || t.state === 'in_progress');
-      const current = this.taskSelect.value;
-      this.taskSelect.innerHTML = '<option value="">不关联任务</option>' +
-        tasks.map(t => `<option value="${t.id}" ${t.id == current ? 'selected' : ''}>${t.title}</option>`).join('');
-    } catch (e) { console.error('Failed to refresh task list:', e); }
+      this.tasks = data.tasks.filter(t => t.state === 'waiting' || t.state === 'in_progress');
+    } catch (e) { console.error('Failed to refresh tasks:', e); }
   }
+
+  openTaskSheet() {
+    this.sheetOptions.innerHTML = '';
+    // "No task" option
+    const noneBtn = document.createElement('button');
+    noneBtn.className = 'sheet-option' + (this.state.linkedTaskId === null ? ' selected' : '');
+    noneBtn.innerHTML = `
+      <div class="so-dot" style="background:var(--text-tertiary)"></div>
+      <span class="so-title">不关联任务</span>
+      <svg class="so-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    `;
+    noneBtn.addEventListener('click', () => this.selectTask(null, '选择任务'));
+    this.sheetOptions.appendChild(noneBtn);
+
+    this.tasks.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'sheet-option' + (this.state.linkedTaskId === t.id ? ' selected' : '');
+      const colors = { waiting: 'var(--text-tertiary)', in_progress: 'var(--accent)' };
+      btn.innerHTML = `
+        <div class="so-dot" style="background:${colors[t.state] || 'var(--text-tertiary)'}"></div>
+        <span class="so-title">${t.title}</span>
+        <svg class="so-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      `;
+      btn.addEventListener('click', () => this.selectTask(t.id, t.title));
+      this.sheetOptions.appendChild(btn);
+    });
+
+    this.sheetOverlay.classList.add('open');
+    this.taskSheet.classList.add('open');
+  }
+
+  closeTaskSheet() {
+    this.sheetOverlay.classList.remove('open');
+    this.taskSheet.classList.remove('open');
+  }
+
+  selectTask(id, title) {
+    this.state.linkedTaskId = id;
+    this.state.linkedTaskTitle = title;
+    this.taskLabel.textContent = title;
+    this.taskLabel.classList.toggle('selected', id !== null);
+    this.closeTaskSheet();
+  }
+
+  // ─── Sound & Notification ───
 
   playSound() {
     try {
@@ -206,23 +316,7 @@ class PomodoroTimer {
   sendNotification() {
     if ('Notification' in window && Notification.permission === 'granted') {
       const msgs = { focus: '专注结束！休息一下吧', short_break: '休息结束，准备下一轮', long_break: '长休息结束，新循环开始' };
-      new Notification('🍅 番茄钟', { body: msgs[this.state.sessionType] });
+      new Notification('番茄钟', { body: msgs[this.state.sessionType] });
     }
-  }
-
-  openSettings() {
-    document.getElementById('s-focus').value = this.settings.focusDuration;
-    document.getElementById('s-short').value = this.settings.shortBreakDuration;
-    document.getElementById('s-long').value = this.settings.longBreakDuration;
-    document.getElementById('s-cycles').value = this.settings.pomodorosPerCycle;
-  }
-
-  saveSettings() {
-    this.settings.focusDuration = Math.max(1, Number(document.getElementById('s-focus').value) || 25);
-    this.settings.shortBreakDuration = Math.max(1, Number(document.getElementById('s-short').value) || 5);
-    this.settings.longBreakDuration = Math.max(1, Number(document.getElementById('s-long').value) || 15);
-    this.settings.pomodorosPerCycle = Math.max(1, Number(document.getElementById('s-cycles').value) || 4);
-    localStorage.setItem('pomodoro-settings', JSON.stringify(this.settings));
-    this.setSession(this.state.sessionType);
   }
 }

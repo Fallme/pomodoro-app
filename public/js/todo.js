@@ -10,18 +10,13 @@ class TodoApp {
     document.getElementById('task-add-btn').addEventListener('click', () => this.addTask());
     this.inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.addTask(); });
 
-    document.querySelectorAll('.filter-btn').forEach(btn => {
+    document.querySelectorAll('.filter-chip').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.filter = btn.dataset.filter;
         this.render();
       });
-    });
-
-    document.getElementById('sort-select').addEventListener('change', (e) => {
-      this.sortBy = e.target.value;
-      this.render();
     });
   }
 
@@ -70,32 +65,36 @@ class TodoApp {
     if (this.tasks.length === 0) {
       this.listEl.innerHTML = `
         <div class="empty-state">
-          <div class="emoji">📝</div>
-          <p>还没有任务，添加一个吧</p>
+          <div class="empty-icon">📝</div>
+          <p>还没有任务</p>
         </div>`;
       return;
     }
 
-    const stateLabels = { waiting: '等待', in_progress: '进行中', completed: '完成', abandoned: '废弃' };
-
-    this.listEl.innerHTML = this.tasks.map(t => {
-      const dots = Array.from({ length: 5 }, (_, i) =>
-        `<span class="dot ${i < (6 - t.priority) ? 'filled' : ''}"></span>`
+    this.listEl.innerHTML = this.tasks.map((t, i) => {
+      const dots = Array.from({ length: 5 }, (_, j) =>
+        `<span class="priority-dot ${j < (6 - t.priority) ? 'filled' : ''}"></span>`
       ).join('');
 
-      const actions = t.state === 'completed' || t.state === 'abandoned'
-        ? `<button class="delete" onclick="todo.deleteTask(${t.id})" title="删除">🗑</button>`
+      const isDone = t.state === 'completed' || t.state === 'abandoned';
+      const actions = isDone
+        ? `<button class="task-action-btn danger" onclick="todo.deleteTask(${t.id})" title="删除">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>`
         : `
-          <button onclick="todo.cycleState(${t.id}, '${t.state}')" title="切换状态">→</button>
-          <button class="delete" onclick="todo.deleteTask(${t.id})" title="删除">🗑</button>`;
+          <button class="task-action-btn" onclick="todo.cycleState(${t.id}, '${t.state}')" title="切换状态">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="task-action-btn danger" onclick="todo.deleteTask(${t.id})" title="删除">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>`;
 
       return `
-        <div class="task-card ${t.state}">
-          <div class="task-state-bar ${t.state}"></div>
-          <div class="task-body">
+        <div class="task-card ${t.state}" style="animation-delay:${i * 0.04}s">
+          <div class="task-state-dot ${t.state}"></div>
+          <div class="task-info">
             <div class="task-title">${this.escHtml(t.title)}</div>
             <div class="task-meta">
-              <span class="task-state-badge ${t.state}">${stateLabels[t.state]}</span>
               <div class="priority-dots">${dots}</div>
             </div>
           </div>

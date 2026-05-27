@@ -43,6 +43,11 @@ const api = {
     return this.request('GET', '/api/pomodoro/monthly');
   },
 
+  getDailyTaskStats(date) {
+    const params = date ? '?date=' + date : '';
+    return this.request('GET', '/api/pomodoro/daily-tasks' + params);
+  },
+
   getCheckins(startDate, endDate) {
     const params = new URLSearchParams();
     if (startDate) params.set('startDate', startDate);
