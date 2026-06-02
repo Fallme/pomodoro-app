@@ -3,9 +3,10 @@ services:
     name: pomodoro-app
     runtime: node
     plan: free
-    buildCommand: npm install --build-from-source
+    buildCommand: npm install
     startCommand: node server.js
     autoDeploy: true
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
