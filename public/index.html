@@ -201,6 +201,25 @@
             <canvas id="heatmap-chart" class="chart-canvas" style="height:140px;min-width:400px"></canvas>
           </div>
         </div>
+
+        <!-- Monthly trend -->
+        <div class="chart-section glass">
+          <div class="chart-title">月度趋势</div>
+          <canvas id="monthly-chart" class="chart-canvas"></canvas>
+        </div>
+
+        <!-- History day view -->
+        <div class="chart-section glass" id="history-section" style="display:none">
+          <div class="chart-title">
+            <span id="history-date-label">历史查看</span>
+            <input type="date" id="history-date-picker" class="history-date-picker">
+          </div>
+          <div id="history-pie-area">
+            <canvas id="history-pie" class="pie-canvas"></canvas>
+            <div id="history-pie-legend" class="pie-legend"></div>
+          </div>
+          <div id="history-task-list" class="daily-task-list"></div>
+        </div>
       </div>
     </section>
 
@@ -210,6 +229,38 @@
       <div class="sheet-handle"></div>
       <div class="sheet-title">选择任务</div>
       <div id="sheet-options"></div>
+    </div>
+
+    <!-- ═══ Task Edit Bottom Sheet ═══ -->
+    <div id="edit-sheet" class="task-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">编辑任务</div>
+      <div class="edit-sheet-inner">
+        <div class="edit-field">
+          <label class="edit-label">任务名称</label>
+          <input id="edit-title" class="todo-input" type="text" maxlength="100" style="width:100%">
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">优先级</label>
+          <div class="edit-priority-row" id="edit-priority-row">
+            <button class="ep-btn" data-p="1">P1</button>
+            <button class="ep-btn" data-p="2">P2</button>
+            <button class="ep-btn" data-p="3">P3</button>
+            <button class="ep-btn" data-p="4">P4</button>
+            <button class="ep-btn" data-p="5">P5</button>
+          </div>
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">状态</label>
+          <div class="edit-priority-row" id="edit-state-row">
+            <button class="es-btn" data-state="waiting">等待</button>
+            <button class="es-btn" data-state="in_progress">进行</button>
+            <button class="es-btn" data-state="completed">完成</button>
+            <button class="es-btn" data-state="abandoned">废弃</button>
+          </div>
+        </div>
+        <button id="edit-save-btn" class="edit-save-btn">保存</button>
+      </div>
     </div>
   </div>
 
@@ -228,6 +279,9 @@
       <span>统计</span>
     </button>
   </nav>
+
+  <!-- ═══ Toast Notification ═══ -->
+  <div id="toast" class="toast"></div>
 
   <script src="js/api.js"></script>
   <script src="js/timer.js"></script>
