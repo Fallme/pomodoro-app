@@ -10,10 +10,12 @@ class PomodoroTimer {
       completedPomodoros: 0,
       linkedTaskId: null,
       linkedTaskTitle: null,
-      rafId: null
+      rafId: null,
+      pendingAdvance: false
     };
     this.tasks = [];
     this.audioCtx = null;
+    this.toastTimeout = null;
 
     // DOM refs
     this.timeEl = document.getElementById('timer-time');
@@ -28,6 +30,7 @@ class PomodoroTimer {
     this.sheetOverlay = document.getElementById('sheet-overlay');
     this.taskSheet = document.getElementById('task-sheet');
     this.sheetOptions = document.getElementById('sheet-options');
+    this.toastEl = document.getElementById('toast');
 
     // Events
     this.btnStart.addEventListener('click', () => this.toggleTimer());
@@ -141,6 +144,7 @@ class PomodoroTimer {
   reset() {
     if (this.state.rafId) cancelAnimationFrame(this.state.rafId);
     this.state.phase = 'idle';
+    this.state.pendingAdvance = false;
     this.state.totalDuration = this.getDurationMs(this.state.sessionType);
     this.state.remaining = this.state.totalDuration;
     this.updateDisplay(this.state.remaining);
@@ -151,6 +155,7 @@ class PomodoroTimer {
   skip() {
     if (this.state.rafId) cancelAnimationFrame(this.state.rafId);
     this.state.phase = 'idle';
+    this.state.pendingAdvance = false;
     this.advancePhase();
   }
 
@@ -191,6 +196,21 @@ class PomodoroTimer {
     } catch (e) { console.error('Failed to log session:', e); }
     this.playSound();
     this.sendNotification();
+
+    // Focus completed: check if task is assigned
+    if (this.state.sessionType === 'focus') {
+      if (this.state.linkedTaskId === null) {
+        // No task assigned — pause and show task picker
+        this.state.pendingAdvance = true;
+        this.showToast('请为本次专注关联任务', 'warning');
+        this.updateButtons();
+        await this.refreshTaskList();
+        this.openTaskSheet();
+        return;
+      } else {
+        this.showToast('专注完成！', 'success');
+      }
+    }
     this.advancePhase();
   }
 
@@ -291,6 +311,15 @@ class PomodoroTimer {
     this.taskLabel.textContent = title;
     this.taskLabel.classList.toggle('selected', id !== null);
     this.closeTaskSheet();
+
+    // If we were waiting for task selection after focus completion, advance now
+    if (this.state.pendingAdvance) {
+      this.state.pendingAdvance = false;
+      if (id !== null) {
+        this.showToast(`已关联：${title}`, 'info');
+      }
+      this.advancePhase();
+    }
   }
 
   // ─── Sound & Notification ───
@@ -318,5 +347,17 @@ class PomodoroTimer {
       const msgs = { focus: '专注结束！休息一下吧', short_break: '休息结束，准备下一轮', long_break: '长休息结束，新循环开始' };
       new Notification('番茄钟', { body: msgs[this.state.sessionType] });
     }
+  }
+
+  showToast(message, type = 'info') {
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    this.toastEl.textContent = message;
+    this.toastEl.className = 'toast ' + type;
+    // Force reflow for re-trigger animation
+    void this.toastEl.offsetWidth;
+    this.toastEl.classList.add('show');
+    this.toastTimeout = setTimeout(() => {
+      this.toastEl.classList.remove('show');
+    }, 3000);
   }
 }
