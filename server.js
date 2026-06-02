@@ -1,24 +1,13 @@
 const express = require('express');
 const path = require('path');
-
 const db = require('./db');
-
-let gitSync;
-try {
-  gitSync = require('./git-sync');
-} catch (e) {
-  console.error('[WARN] Git sync unavailable:', e.message);
-  gitSync = { pull() {}, push() {}, isGitConfigured() { return false; } };
-}
+const gitSync = require('./git-sync');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Health check
-app.get('/health', (req, res) => res.json({ ok: true }));
 
 // ─── Tasks API ───
 
@@ -111,17 +100,14 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// ─── Startup: pull latest data from git ───
+gitSync.pull();
+
 // Only listen when running directly (not on Vercel)
 if (!process.env.VERCEL) {
-  db.initPromise.then(() => {
-    try { gitSync.pull(); } catch (e) { console.error('[startup] git pull failed:', e.message); }
-    app.listen(PORT, () => {
-      const gitStatus = gitSync.isGitConfigured() ? ' | Git sync enabled' : ' | Git sync not configured';
-      console.log(`Server running at http://localhost:${PORT}${gitStatus}`);
-    });
-  }).catch(e => {
-    console.error('[FATAL] Failed to start:', e.message);
-    process.exit(1);
+  app.listen(PORT, () => {
+    const gitStatus = gitSync.isGitConfigured() ? ' | Git sync enabled' : ' | Git sync not configured';
+    console.log(`Server running at http://localhost:${PORT}${gitStatus}`);
   });
 }
 
