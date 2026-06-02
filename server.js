@@ -1,13 +1,30 @@
 const express = require('express');
 const path = require('path');
-const db = require('./db');
-const gitSync = require('./git-sync');
+
+let db;
+try {
+  db = require('./db');
+} catch (e) {
+  console.error('[FATAL] Database init failed:', e.message);
+  process.exit(1);
+}
+
+let gitSync;
+try {
+  gitSync = require('./git-sync');
+} catch (e) {
+  console.error('[WARN] Git sync unavailable:', e.message);
+  gitSync = { pull() {}, push() {}, isGitConfigured() { return false; } };
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Health check
+app.get('/health', (req, res) => res.json({ ok: true }));
 
 // ─── Tasks API ───
 
@@ -101,7 +118,11 @@ app.use((err, req, res, next) => {
 });
 
 // ─── Startup: pull latest data from git ───
-gitSync.pull();
+try {
+  gitSync.pull();
+} catch (e) {
+  console.error('[startup] git pull failed:', e.message);
+}
 
 // Only listen when running directly (not on Vercel)
 if (!process.env.VERCEL) {
