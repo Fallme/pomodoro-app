@@ -68,10 +68,6 @@ app.get('/api/pomodoro/daily-tasks', (req, res) => {
   res.json(db.getDailyTaskStats(req.query.date));
 });
 
-app.get('/api/tasks/stats', (req, res) => {
-  res.json(db.getTaskStats());
-});
-
 // ─── Checkins API ───
 
 app.get('/api/checkins', (req, res) => {
