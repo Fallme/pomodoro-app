@@ -1043,25 +1043,3 @@ button, input, select { font-family: inherit; }
   #app { padding-left: 0; padding-right: 0; }
 }
 
-/* ─── Dark mode ─── */
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-primary: #F2F2F7;
-    --text-secondary: #98989D;
-    --text-tertiary: #636366;
-  }
-  body {
-    background: linear-gradient(135deg, #2C1810 0%, #3D2317 30%, #4A2C1A 70%, #2C1810 100%);
-  }
-  .glass, .glass-solid, .timer-task-bar, .settings-toggle, .settings-inner,
-  .task-card, .stat-card, .chart-section, .todo-input, .todo-priority, .filter-chip {
-    background: rgba(44, 44, 46, 0.65);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-  .header { background: rgba(28, 28, 30, 0.5); border-color: rgba(255, 255, 255, 0.06); }
-  .tab-bar { background: rgba(28, 28, 30, 0.65); border-color: rgba(255, 255, 255, 0.06); }
-  .task-sheet { background: rgba(44, 44, 46, 0.85); }
-  .setting-stepper { background: rgba(255, 255, 255, 0.08); }
-  .timer-ring-bg { stroke: rgba(255, 255, 255, 0.08); }
-}
