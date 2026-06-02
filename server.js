@@ -1,13 +1,7 @@
 const express = require('express');
 const path = require('path');
 
-let db;
-try {
-  db = require('./db');
-} catch (e) {
-  console.error('[FATAL] Database init failed:', e.message);
-  process.exit(1);
-}
+const db = require('./db');
 
 let gitSync;
 try {
@@ -117,18 +111,17 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// ─── Startup: pull latest data from git ───
-try {
-  gitSync.pull();
-} catch (e) {
-  console.error('[startup] git pull failed:', e.message);
-}
-
 // Only listen when running directly (not on Vercel)
 if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    const gitStatus = gitSync.isGitConfigured() ? ' | Git sync enabled' : ' | Git sync not configured';
-    console.log(`Server running at http://localhost:${PORT}${gitStatus}`);
+  db.initPromise.then(() => {
+    try { gitSync.pull(); } catch (e) { console.error('[startup] git pull failed:', e.message); }
+    app.listen(PORT, () => {
+      const gitStatus = gitSync.isGitConfigured() ? ' | Git sync enabled' : ' | Git sync not configured';
+      console.log(`Server running at http://localhost:${PORT}${gitStatus}`);
+    });
+  }).catch(e => {
+    console.error('[FATAL] Failed to start:', e.message);
+    process.exit(1);
   });
 }
 
