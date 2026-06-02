@@ -3,7 +3,7 @@ services:
     name: pomodoro-app
     runtime: node
     plan: free
-    buildCommand: npm install && npm rebuild better-sqlite3
+    buildCommand: npm install --build-from-source
     startCommand: node server.js
     autoDeploy: true
     envVars:
